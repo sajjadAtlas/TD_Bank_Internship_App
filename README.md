@@ -39,3 +39,10 @@ Some details:
   For Group mode you enter one file at a time, for Aggregate mode enter any amount at once (perferably <25 to prevent overflow :))
   
  
+
+
+
+
+Known Issues:
+
+1. Group mode duplicates some contents on work laptop, works fine on personal machine
