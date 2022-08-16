@@ -21,48 +21,9 @@ int mode;
 using namespace std;
 
 std::vector<std::string> files;
-int selectMode()
-{
 
-    std::cout << "WELCOME TO ADVIEWER COMPILER" << std::endl;
-    std::cout << std::endl;
-    std::cout << "Before you start, please make sure you have read the help guide!" << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Please enter an output file PATH (where you want results to be stored" << std::endl;
-
-
-
-    ZeroMemory( &ofn , sizeof( ofn));
-    ofn.lStructSize = sizeof ( ofn );
-    ofn.hwndOwner = NULL  ;
-    ofn.lpstrFile = outFile ;
-    ofn.lpstrFile[0] = '\0';
-    ofn.nMaxFile = sizeof( szFile );
-    ofn.lpstrFilter = "All Files\0*.*\0\0";
-    ofn.nFilterIndex =1;
-    ofn.lpstrFileTitle = NULL ;
-    ofn.nMaxFileTitle = 0 ;
-    ofn.lpstrInitialDir=NULL ;
-    ofn.Flags = OFN_PATHMUSTEXIST|OFN_FILEMUSTEXIST|OFN_EXPLORER;
-
-    GetOpenFileName( &ofn );
-
-    std::string p(ofn.lpstrFile);
-
-    p+= "\\";
-
-    std::cout<<p<<std::endl;
-
-    std::cout << "Please select one of three modes: " << std::endl;
-    std::cout << std::endl;
-    std::cout << "Type 1 for Aggregate Mode, 2 for Group Mode, or 3 for Names Mode followed by the Enter key" << std::endl;
-    std::cin >> mode;
-    outPath = p;
-    return mode;
-
-}
-std::string FileInput()
+//Creates file explorer dialogue box and stores resultant file name inside vector
+void FileInput()
 {
     ZeroMemory( &ofn , sizeof( ofn));
     ofn.lStructSize = sizeof ( ofn );
@@ -92,7 +53,7 @@ std::string FileInput()
         files.push_back(path+file);
         current+=(file.size()+1);
     }
-    std::string end = "A";
+   
     if(files.size() == 0)
     {
         files.push_back(ofn.lpstrFile);
@@ -103,9 +64,11 @@ std::string FileInput()
     {
         multiFileParse(files);
     }
-    return end;
+    
 
 }
+//control function for aggregate files, loops through file vector ignoring the first 9 lines since they have useless info
+//removes extra string content, and then appends to output vector, removes duplicates and then writes to file
 void aggregateMode(std::vector<std::string>)
 {
     std::ifstream multiFile;
@@ -149,7 +112,13 @@ void aggregateMode(std::vector<std::string>)
     }
     output.close();
 }
+//removes extra useless strings just like aggr mode, then proceeds with group update logic:
 
+//group logic essentially checks in the file already had a specific group name and compares with new incoming data
+//if group name is a match, then find distance from group header to '' character which marks end of a group
+//adds this group to a vector, and finds set difference between said vector and incoming content
+//appends difference to a vector containing data that was already in the file, and writes that to file
+//if a brand new group is added, then proceed with original functionality (just append to the file normally)
 void groupMode(std::vector<std::string>)
 {
     std::ifstream multiFile;
@@ -257,6 +226,8 @@ void groupMode(std::vector<std::string>)
     }
 }
 
+//select modes based on user input
+
 std::vector<string> multiFileParse(std::vector<std::string> files)
 {
     std::cout<<mode<<std::endl;
@@ -281,13 +252,12 @@ std::vector<string> multiFileParse(std::vector<std::string> files)
 }
 
 
-
+//main function, asks user for input
 int WINAPI WinMain( HINSTANCE hInstance , HINSTANCE hPrevInstance , LPSTR lpCmdLine , int nCmdShow )
 {
     std::cout << "WELCOME TO ADVIEWER COMPILER" << std::endl;
     std::cout << std::endl;
-    std::cout << "Before you start, please make sure you have read the help guide!" << std::endl;
-    std::cout << std::endl;
+   
 
     std::cout << "Please enter an output file PATH (where you want results to be stored" << std::endl;
 
