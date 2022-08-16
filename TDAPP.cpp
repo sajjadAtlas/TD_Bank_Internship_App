@@ -326,7 +326,7 @@ int WINAPI WinMain( HINSTANCE hInstance , HINSTANCE hPrevInstance , LPSTR lpCmdL
 
     std::cout << "Please select one of three modes: " << std::endl;
     std::cout << std::endl;
-    std::cout << "Type 1 for Aggregate Mode, 2 for Group Mode, or 3 for Names Mode followed by the Enter key" << std::endl;
+    std::cout << "Type 1 for Aggregate Mode or 2 for Group Mode followed by the Enter key" << std::endl;
     std::cin >> mode;
     outPath = p;
     //std::cout<<selectMode()<<std::endl;
