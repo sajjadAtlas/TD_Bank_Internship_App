@@ -18,8 +18,9 @@ Some details:
 
   a) Aggregate mode essentially compiles a list of all names from N selection of files and parses the strings to remove extra details. 
      It will remove all duplicates on its own for your convenience!
-  b) Group mode will group the names by the name of the resource group, and it when the group has new members you can submit the file again and it will add only the
-      new members. For example, 3 txt files with group names 1, 2 3. The program will make sure the names are are included before the members of each group,
+     
+  b) Group mode will group the names by the name of the resource group, and when the group has new members you can submit the file again and it will add only the
+      new members (update basically). For example, 3 txt files with group names 1, 2 3. The program will make sure the names are are included before the members of each group,
       like so:
       
       GROUP1
