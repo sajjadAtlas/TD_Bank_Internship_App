@@ -1,7 +1,7 @@
 Small application developed for TD Risk Management Dept. during the summer 2022 co-op!
 
 This Application was developed in order to make it a lot easier to find which users are in which access groups. Normally you'd have to manually parse several hundreds
-of rows and remove many extra characters and details. This program does the dirty work for you!
+of rows and remove many extra characters and details. This program does the dirty work for you! I used file handling, windows.h api to create an easier to use interface, and many datastructures and STL functions to make this work.
 
  For observers not part of TD, we essentially have AD groups which refers to different resources and who has access to said resources. The strings in the txt 
   files for those groups look something like this:
