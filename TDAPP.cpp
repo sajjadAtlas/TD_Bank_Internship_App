@@ -7,18 +7,12 @@
 #include<algorithm>
 #include <iterator>
 
-#include <set>
-//
-// Gobal Variables and declarations.
-//
+
 
 OPENFILENAME ofn ;
-//std::string FileInput();
-//std::string singleFileParse(std::string fileName);
+
 std::vector<std::string> multiFileParse(std::vector<std::string> files);
-//int selectMode();
 std::string outPath;
-// a another memory buffer to contain the file name
 char szFile[10000];
 char outFile[10000];
 int mode;
@@ -117,8 +111,7 @@ void aggregateMode(std::vector<std::string>)
     std::ifstream multiFile;
     std::string content;
     std::ofstream output;
-    //std::ifstream readOutput;
-    //std::string outputContent;
+
     std::vector<std::string> fileContents;
 
     output.open(outPath, std::ios::app);
@@ -237,12 +230,10 @@ void groupMode(std::vector<std::string>)
                 std::cout<<*(outCont.begin()+distHeader+1)<<std::endl;
 
 
-                //outCont.erase(outCont.begin()+distHeader+1);
             }
 
         }
     }
-    //std::cout<<match<<std::endl;
     if(match)
     {
         std::ofstream update;
@@ -261,7 +252,6 @@ void groupMode(std::vector<std::string>)
         {
             output << fileContents[j] << std::endl;
         }
-        //output << "\n";
         output.close();
         readOutput.close();
     }
@@ -320,7 +310,6 @@ int WINAPI WinMain( HINSTANCE hInstance , HINSTANCE hPrevInstance , LPSTR lpCmdL
 
     std::string p(ofn.lpstrFile);
 
-    //p+= "\\";
 
     std::cout<<p<<std::endl;
 
@@ -329,7 +318,6 @@ int WINAPI WinMain( HINSTANCE hInstance , HINSTANCE hPrevInstance , LPSTR lpCmdL
     std::cout << "Type 1 for Aggregate Mode or 2 for Group Mode followed by the Enter key" << std::endl;
     std::cin >> mode;
     outPath = p;
-    //std::cout<<selectMode()<<std::endl;
     std::cout<<mode<<std::endl;
     string s = FileInput();
 
