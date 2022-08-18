@@ -1,91 +1,77 @@
 #include <iostream>
-#include <windows.h>
+
 #include <string.h>
-#include <Commdlg.h>
 #include <vector>
 #include <fstream>
 #include<algorithm>
 #include <iterator>
 
+#include <set>
 
+void multiFileParse(int mode);
 
-OPENFILENAME ofn ;
-
-std::vector<std::string> multiFileParse(std::vector<std::string> files);
 std::string outPath;
-char szFile[10000];
-char outFile[10000];
+
 int mode;
-
-
-using namespace std;
+std::string inputFile;
+std::string outputFile;
 
 std::vector<std::string> files;
 
-//Creates file explorer dialogue box and stores resultant file name inside vector
-void FileInput()
+/*
+Function for selecting between Aggregate and Group modes
+*/
+
+int selectMode()
 {
-    ZeroMemory( &ofn , sizeof( ofn));
-    ofn.lStructSize = sizeof ( ofn );
-    ofn.hwndOwner = NULL  ;
-    ofn.lpstrFile = szFile ;
-    ofn.lpstrFile[0] = '\0';
-    ofn.nMaxFile = sizeof( szFile );
-    ofn.lpstrFilter = "All Files\0*.*\0\0";
-    ofn.nFilterIndex =1;
-    ofn.lpstrFileTitle = NULL ;
-    ofn.nMaxFileTitle = 0 ;
-    ofn.lpstrInitialDir=NULL ;
-    ofn.Flags = OFN_PATHMUSTEXIST|OFN_FILEMUSTEXIST|OFN_ALLOWMULTISELECT|OFN_EXPLORER;
-
-    GetOpenFileName( &ofn );
-
-
-    std::string path(ofn.lpstrFile);
-
-    path += "\\";
-
-    const char* current = ofn.lpstrFile + path.size();
-
-    while(*current)
-    {
-        std::string file(current);
-        files.push_back(path+file);
-        current+=(file.size()+1);
-    }
-   
-    if(files.size() == 0)
-    {
-        files.push_back(ofn.lpstrFile);
-        multiFileParse(files);
-    }
-
-    else
-    {
-        multiFileParse(files);
-    }
     
+    std::cout << "Please type the number 1 for Aggregate Mode or the number 2 for Group mode followed by the Enter key"<<std::endl;
 
+    std::cin >> mode;
+
+    std::cout<< "Please enter an input file path (file you want to parse)" <<std::endl;
+
+    std::cin >> inputFile;
+    
+    std::cout << "Please enter an output file PATH (where you want results to be stored)" << std::endl;
+    
+    std::cin >>outputFile;
+    
+    return mode;
 }
-//control function for aggregate files, loops through file vector ignoring the first 9 lines since they have useless info
-//removes extra string content, and then appends to output vector, removes duplicates and then writes to file
-void aggregateMode(std::vector<std::string>)
+
+/*
+This function compiles an aggregate list of all the names from N files, and automatically removes duplicates.
+Removing duplicates is achieving by reading previous state of csv file into a set, and then inserting new content to ensure
+only unique values are added 
+*/
+
+void aggregateMode()
 {
     std::ifstream multiFile;
     std::string content;
+    std::string cont;
     std::ofstream output;
-
+    std::ifstream readOutput;
     std::vector<std::string> fileContents;
+    std::set<std::string> fileConts;
 
-    output.open(outPath, std::ios::app);
-    for(int i = 0;i<files.size();i++)
-    {
-        multiFile.open(files[i]);
-        std::cout<<files[i]<<std::endl;
+    readOutput.open(outputFile);
+
+        while(std::getline(readOutput, cont))
+        {
+            fileConts.insert(cont);
+
+        }
+
+        readOutput.close();
+
+        multiFile.open(inputFile);
         for(int i = 0;i<9;i++)
         {
             multiFile.ignore(10000,'\n');
         }
+
 
         while(std::getline(multiFile, content))
         {
@@ -94,32 +80,34 @@ void aggregateMode(std::vector<std::string>)
             content.erase(0,3);
             content.erase(remove(content.begin(), content.end(), ','), content.end());
             fileContents.push_back(content);
-            std::sort( begin(fileContents), end(fileContents) );
-            fileContents.erase( std::unique( begin(fileContents), end(fileContents) ), end(fileContents) );
-
 
         }
-
+        for(int i = 0;i<fileContents.size();i++)
+        {
+            fileConts.insert(fileContents[i]);
+        }
 
         multiFile.close();
+        readOutput.close();
 
+        output.open(outputFile);
 
-
-    }
-    for(int j = 0;j<fileContents.size();j++)
+    for(auto elem: fileConts)
     {
-        output << fileContents[j] << std::endl;
+        output << elem << std::endl;
     }
     output.close();
 }
-//removes extra useless strings just like aggr mode, then proceeds with group update logic:
 
-//group logic essentially checks in the file already had a specific group name and compares with new incoming data
-//if group name is a match, then find distance from group header to '' character which marks end of a group
-//adds this group to a vector, and finds set difference between said vector and incoming content
-//appends difference to a vector containing data that was already in the file, and writes that to file
-//if a brand new group is added, then proceed with original functionality (just append to the file normally)
-void groupMode(std::vector<std::string>)
+/* 
+Group mode sorts names in a list by which group they belong to.
+To do this, we read the previous state of the file and see if the first line of the incoming data (which is set to the group name) matches
+data inside the previous state. Then, upon matching, saving items from group header to end of group, which is denoted by a blank line into a vector.
+Then compare this vector to the incoming data vector and save the difference between them, which will be appended to the previous state, 
+thereby updating groups. If there is no match between group headers, simply insert the input data vector into the file normally, with group header as item 0.
+*/
+
+void groupMode()
 {
     std::ifstream multiFile;
     std::string content;
@@ -127,15 +115,13 @@ void groupMode(std::vector<std::string>)
     std::ifstream readOutput;
     std::string outputContent;
     std::vector<std::string> fileContents;
-    std::set<std::string> outputSet;
 
-    output.open(outPath, std::ios::app);
+    output.open(outputFile, std::ios::app);
 
-    readOutput.open(outPath);
+    readOutput.open(outputFile);
     std::string firstLine;
     std::string outContent;
     std::vector<std::string> outCont;
-
 
     int lineCount = 0;
     std::vector<std::string> group;
@@ -146,72 +132,67 @@ void groupMode(std::vector<std::string>)
     }
     bool match = false;
     int distHeader;
-    for(int i = 0;i<files.size();i++)
+
+    multiFile.open(inputFile);
+    
+    if (std::getline(multiFile, firstLine))
     {
-        multiFile.open(files[i]);
-        std::cout<<files[i]<<std::endl;
-        if (std::getline(multiFile, firstLine))
-        {
-            firstLine.erase(0,10);
-        }
-        for(int i = 0;i<8;i++)
-        {
-            multiFile.ignore(10000,'\n');
-        }
-        fileContents.push_back(firstLine);
-        while(std::getline(multiFile, content))
-        {
-            lineCount++;
-            content = content.substr(0, content.find("OU=", 0));
-            content.erase(0,3);
-            content.erase(remove(content.begin(), content.end(), ','), content.end());
-            fileContents.push_back(content);
-        }
-        fileContents.push_back("");
-        multiFile.close();
-        auto search = std::find(outCont.begin(), outCont.end(), fileContents[0]);
-
-        if(search!=outCont.end()){
-            match = true;
-            distHeader = std::distance(outCont.begin(), search);
-
-            auto foot = std::find(outCont.begin()+distHeader, outCont.end(), "");
-            if(foot!=outCont.end()){
-
-                int dist = std::distance(outCont.begin()+distHeader, foot);
-
-
-                std::vector<std::string> group = std::vector<std::string>(outCont.begin() + distHeader+1, outCont.begin()+distHeader+dist);
-                std::vector<std::string> symmDiff;
-                std::sort(group.begin(), group.end());
-                std::sort(fileContents.begin(), fileContents.end());
-
-                std::set_difference(
-                        fileContents.begin(), fileContents.end(),
-                        group.begin(), group.end(),
-                        std::back_inserter(symmDiff));
-
-
-                outCont.insert(outCont.begin()+distHeader+1, symmDiff.begin(), symmDiff.end());
-
-
-
-                std::cout<<*(outCont.begin()+distHeader+1)<<std::endl;
-
-
-            }
-
-        }
+        firstLine.erase(0,10);
     }
+    for(int i = 0;i<8;i++)
+    {
+        multiFile.ignore(10000,'\n');
+    }
+    fileContents.push_back(firstLine);
+    while(std::getline(multiFile, content))
+    {
+        lineCount++;
+        content = content.substr(0, content.find("OU=", 0));
+        content.erase(0,3);
+        content.erase(remove(content.begin(), content.end(), ','), content.end());
+        fileContents.push_back(content);
+    }
+    fileContents.push_back("");
+    multiFile.close();
+    auto search = std::find(outCont.begin(), outCont.end(), fileContents[0]);
+
+    if(search!=outCont.end()){
+        match = true;
+        distHeader = std::distance(outCont.begin(), search);
+
+        auto foot = std::find(outCont.begin()+distHeader, outCont.end(), "");
+        if(foot!=outCont.end()){
+            int dist = std::distance(outCont.begin()+distHeader, foot);
+
+
+            std::vector<std::string> group = std::vector<std::string>(outCont.begin() + distHeader, outCont.begin()+distHeader+dist);
+            std::vector<std::string> symmDiff;
+            std::sort(group.begin(), group.end());
+            std::sort(fileContents.begin(), fileContents.end());
+
+            std::set_difference(
+                    fileContents.begin(), fileContents.end(),
+                    group.begin(), group.end(),
+                    std::back_inserter(symmDiff));
+
+
+            outCont.insert(outCont.begin()+distHeader+1, symmDiff.begin(), symmDiff.end());
+
+            outCont.erase(outCont.begin()+distHeader+1);
+        }
+
+    }
+
     if(match)
     {
         std::ofstream update;
-        update.open(outPath);
+        update.open(outputFile);
 
         for(int k = 0;k<outCont.size();k++)
         {
             update << outCont[k] << std::endl;
         }
+        update << " " << std::endl;
         update.close();
         readOutput.close();
     }
@@ -221,75 +202,52 @@ void groupMode(std::vector<std::string>)
         {
             output << fileContents[j] << std::endl;
         }
+        output << " " << std::endl;
         output.close();
         readOutput.close();
     }
+
 }
 
-//select modes based on user input
+//Calls appropriate functions based on user mode selection
 
-std::vector<string> multiFileParse(std::vector<std::string> files)
+void multiFileParse(int mode)
 {
-    std::cout<<mode<<std::endl;
-    std::cout<<files[0]<<std::endl;
     switch(mode)
     {
         case 1:
-            aggregateMode(files);
+            aggregateMode();
             break;
-            case 2:
-                groupMode(files);
-                break;
-                default:
-                    break;
-
+        case 2:
+            groupMode();
+            break;
+        default:
+            break;
 
     }
 
-
-
-    return files;
 }
 
-
-//main function, asks user for input
-int WINAPI WinMain( HINSTANCE hInstance , HINSTANCE hPrevInstance , LPSTR lpCmdLine , int nCmdShow )
+int main()
 {
     std::cout << "WELCOME TO ADVIEWER COMPILER" << std::endl;
     std::cout << std::endl;
-   
-
-    std::cout << "Please enter an output file PATH (where you want results to be stored" << std::endl;
-
-
-
-    ZeroMemory( &ofn , sizeof( ofn));
-    ofn.lStructSize = sizeof ( ofn );
-    ofn.hwndOwner = NULL  ;
-    ofn.lpstrFile = outFile ;
-    ofn.lpstrFile[0] = '\0';
-    ofn.nMaxFile = sizeof( szFile );
-    ofn.lpstrFilter = "All Files\0*.*\0\0";
-    ofn.nFilterIndex =1;
-    ofn.lpstrFileTitle = NULL ;
-    ofn.nMaxFileTitle = 0 ;
-    ofn.lpstrInitialDir=NULL ;
-    ofn.Flags = OFN_PATHMUSTEXIST|OFN_FILEMUSTEXIST|OFN_EXPLORER;
-
-    GetOpenFileName( &ofn );
-
-    std::string p(ofn.lpstrFile);
-
-
-    std::cout<<p<<std::endl;
-
-    std::cout << "Please select one of three modes: " << std::endl;
+    std::cout << "Before you start, please make sure you have read the help guide!" << std::endl;
     std::cout << std::endl;
-    std::cout << "Type 1 for Aggregate Mode or 2 for Group Mode followed by the Enter key" << std::endl;
-    std::cin >> mode;
-    outPath = p;
-    std::cout<<mode<<std::endl;
-    string s = FileInput();
+    int stateSelect = 1;
+
+
+   while(stateSelect)
+   {
+
+        int selection = selectMode();
+        multiFileParse(selection);
+
+        std::cout<<"Press 0 to quit, or press 1 to parse more files, followed by the Enter key"<<std::endl;
+        std::cin >> stateSelect;
+        
+
+   }
 
     return 0;
 }
