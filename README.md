@@ -1,7 +1,7 @@
 Small application developed for TD Risk Management Dept. during the summer 2022 co-op!
 
 This Application was developed in order to make it a lot easier to find which users are in which access groups. Normally you'd have to manually parse several hundreds
-of rows and remove many extra characters and details. This program does the dirty work for you! I used file handling, windows.h api to create an easier to use interface, and many datastructures and STL functions to make this work.
+of rows and remove many extra characters and details. This program does the dirty work for you! I used file handling and many datastructures and STL functions to make this work.
 
  For observers not part of TD, we essentially have AD groups which refers to different resources and who has access to said resources. The strings in the txt 
   files for those groups look something like this:
@@ -20,7 +20,7 @@ Some details:
      It will remove all duplicates on its own for your convenience!
      
   b) Group mode will group the names by the name of the resource group, and when the group has new members you can submit the file again and it will add only the
-      new members (update basically). For example, 3 txt files with group names 1, 2 3. The program will make sure the names are are included before the members of each group,
+      new members (essentially updating it). For example, 3 txt files with group names 1, 2 3. The program will make sure the names are are included before the members of each group,
       like so:
       
       GROUP1
@@ -36,7 +36,7 @@ Some details:
         Henry
         Bob
         
-  For Group mode you enter one file at a time, for Aggregate mode enter any amount at once (perferably <25 to prevent overflow :))
+ Users are given the opportunity to add more files one after the other.
   
  
 
